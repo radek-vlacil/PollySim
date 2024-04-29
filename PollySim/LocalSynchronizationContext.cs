@@ -33,11 +33,5 @@ namespace PollySimulator
                 item.Item1(item.Item2);
             }
         }
-
-        public void BlockedCallback(TaskCompletionSource tcs, SendOrPostCallback callback, object? state)
-        {
-            callback(state);
-            tcs.SetResult();
-        }
     }
 }
