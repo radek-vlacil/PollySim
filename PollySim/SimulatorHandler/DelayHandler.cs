@@ -21,9 +21,9 @@ namespace PollySimulator.SimulatorHandler
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            Console.WriteLine("Simulated delay started");
+            Console.WriteLine("DelayHandler: Simulated delay started");
             await Task.Delay(_delay, _timeProvider, cancellationToken);
-            Console.WriteLine("Simulated success");
+            Console.WriteLine("DelayHandler: Simulated success");
             return new HttpResponseMessage(HttpStatusCode.OK);
         }
     }

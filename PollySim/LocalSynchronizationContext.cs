@@ -9,11 +9,11 @@ namespace PollySimulator
 {
     internal class LocalSynchronizationContext : SynchronizationContext
     {
-        private readonly ConcurrentQueue<(SendOrPostCallback, object)> _workQueue;
+        private readonly ConcurrentQueue<(SendOrPostCallback, object?)> _workQueue;
 
         public LocalSynchronizationContext()
         {
-             _workQueue = new ConcurrentQueue<(SendOrPostCallback, object)>();
+             _workQueue = new ConcurrentQueue<(SendOrPostCallback, object?)>();
         }
 
         public override void Post(SendOrPostCallback d, object? state)
@@ -28,18 +28,16 @@ namespace PollySimulator
 
         public void Run()
         {
-            bool workDone = true;
-
-            while (workDone)
+            while (_workQueue.TryDequeue(out var item))
             {
-                workDone = false;
-
-                while (_workQueue.TryDequeue(out var item))
-                {
-                    item.Item1(item.Item2);
-                    workDone = true;
-                }
+                item.Item1(item.Item2);
             }
+        }
+
+        public void BlockedCallback(TaskCompletionSource tcs, SendOrPostCallback callback, object? state)
+        {
+            callback(state);
+            tcs.SetResult();
         }
     }
 }
