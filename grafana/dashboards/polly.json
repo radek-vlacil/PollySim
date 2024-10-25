@@ -18,7 +18,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 2,
+  "id": 3,
   "links": [],
   "panels": [
     {
@@ -109,7 +109,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "builder",
-          "expr": "sum by(error_type, pipeline_name) (rate(resilience_polly_pipeline_duration_milliseconds_count[$__rate_interval]))",
+          "expr": "sum by(error_type, pipeline_name, exception_type) (rate(resilience_polly_pipeline_duration_milliseconds_count[$__rate_interval]))",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "__auto",
@@ -123,7 +123,7 @@
     }
   ],
   "preload": false,
-  "refresh": "5s",
+  "refresh": "auto",
   "schemaVersion": 40,
   "tags": [],
   "templating": {
@@ -136,7 +136,7 @@
   "timepicker": {},
   "timezone": "browser",
   "title": "Polly",
-  "uid": "de1sa0kt8atj4f",
-  "version": 3,
+  "uid": "be1w3z7vmfcowa",
+  "version": 2,
   "weekStart": ""
 }

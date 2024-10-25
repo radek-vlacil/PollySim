@@ -19,7 +19,7 @@ public class Program
         app.MapGet("/", () => "Supported endpoints: ['/retry']");
         app.MapGet("/retry", (IHttpClientFactory factory) =>
             {
-                var _ = RunTest(() => Retry.Run(factory));
+                var _ = RunTest(factory, (f, s) => Retry.Run(f, s));
                 return $"Retry Test Started for next {_testDuration.TotalSeconds} seconds with {_rps} RPS.";
             }
         );
@@ -32,19 +32,20 @@ public class Program
         Retry.Configure(services);
     }
 
-    private static async Task RunTest(Func<Task> test)
+    private static async Task RunTest(IHttpClientFactory factory, Func<IHttpClientFactory, DateTime, Task> test)
     {
         var periodicTimer = new PeriodicTimer(TimeSpan.FromMilliseconds(100));
         var tickCount = (int) (_testDuration / _testTick);
         var ticksPerSecond = (int) (TimeSpan.FromSeconds(1) / _testTick);
         var requestPerTick = _rps / ticksPerSecond;
+        var startTime = DateTime.Now;
 
         int i = 0;
         while (await periodicTimer.WaitForNextTickAsync() && i < tickCount)
         {
             foreach (var j in Enumerable.Range(0, requestPerTick))
             {
-                var _ = test();
+                var _ = test(factory, startTime);
             }
             ++i;
         }
