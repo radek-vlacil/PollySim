@@ -1,4 +1,5 @@
 ﻿using Polly;
+using System.Numerics;
 
 namespace PollySim.Runner.Responder
 {
@@ -6,23 +7,40 @@ namespace PollySim.Runner.Responder
     {
         public TimeSpan StartOffset { get; }
         public TimeSpan ChaosDuration { get; }
+        public double InjectionRate { get; }
+        public TimeSpan RumpUpDuration { get; }
 
         public static readonly ChaosManager Default = new(TimeSpan.FromSeconds(15), TimeSpan.FromSeconds(15));
 
         public ChaosManager(TimeSpan startOffset, TimeSpan chaosDuration)
+            : this(startOffset, chaosDuration, 1.0, TimeSpan.Zero)
+        {
+        }
+        
+        public ChaosManager(TimeSpan startOffset, TimeSpan chaosDuration, double injectionRate)
         {
             StartOffset = startOffset;
             ChaosDuration = chaosDuration;
+            InjectionRate = injectionRate;
+            RumpUpDuration = TimeSpan.Zero;
+        }
+
+        public ChaosManager(TimeSpan startOffset, TimeSpan chaosDuration, double injectionRate, TimeSpan rumpUpDuration)
+        {
+            StartOffset = startOffset;
+            ChaosDuration = chaosDuration;
+            InjectionRate = injectionRate;
+            RumpUpDuration = rumpUpDuration;
         }
 
         public ValueTask<bool> IsChaosEnabled(ResilienceContext context)
         {
             var testStartTime = context.GetTestStartTime();
-            var curTime = DateTime.Now;
-            var beginTime = testStartTime + StartOffset;
-            var endTime = beginTime + ChaosDuration;
+            var curOffset = DateTime.Now - testStartTime;
+            var beginOffset = StartOffset;
+            var endOffset = beginOffset + RumpUpDuration + ChaosDuration + RumpUpDuration;
 
-            if (curTime > beginTime && curTime < endTime)
+            if (curOffset > beginOffset && curOffset < endOffset)
             {
                 return ValueTask.FromResult(true);
             }
@@ -31,43 +49,53 @@ namespace PollySim.Runner.Responder
 
         public ValueTask<double> GetInjectionRate(ResilienceContext context)
         {
-            return ValueTask.FromResult(1.0);
+            return ValueTask.FromResult(InjectionRate);
         }
 
-        public static TimeSpan LinearDelayGenerator(TimeSpan delay, DateTime beginTime, TimeSpan duration, TimeSpan rampUpDuration)
+        public ValueTask<double> GetLinearProgressionInjectionRate(ResilienceContext context)
         {
-            var curTime = DateTime.Now;
-            var startFullDelayTime = beginTime + rampUpDuration;
-            var endFullDelayTime = startFullDelayTime + duration;
-            var endTime = endFullDelayTime + rampUpDuration;
+            return ValueTask.FromResult(LinearProgressionGenerator(InjectionRate, context.GetTestStartTime() + StartOffset, ChaosDuration, RumpUpDuration));
+        }
 
+        public static double LinearProgressionGenerator(double value, DateTime beginTime, TimeSpan duration, TimeSpan rampUpDuration)
+        {
+            return LinearProgressionGeneratorImpl(value, beginTime, duration, rampUpDuration, (p, v) => p * v);
+        }
 
-            if (curTime <= beginTime)
+        public static TimeSpan LinearDelayGenerator(TimeSpan value, DateTime beginTime, TimeSpan duration, TimeSpan rampUpDuration)
+        {
+            var milliseconds = value.TotalMilliseconds;
+            var result = LinearProgressionGeneratorImpl(milliseconds, beginTime, duration, rampUpDuration, (p, v) => p * v);
+            return TimeSpan.FromMilliseconds(result);
+        }
+
+        private static TValue LinearProgressionGeneratorImpl<TValue>(TValue value, DateTime beginTime, TimeSpan duration, TimeSpan rampUpDuration, Func<double, TValue, TValue> multiply) where TValue : INumber<TValue>
+        {
+            var curOffset = DateTime.Now - beginTime;
+            var endFullOffset = rampUpDuration + duration;
+            var endOffset = endFullOffset + rampUpDuration;
+
+            if (curOffset <= TimeSpan.Zero)
             {
-                return TimeSpan.Zero;
+                return default;
             }
 
-            if (curTime >= endTime)
+            if (curOffset >= endOffset)
             {
-                return TimeSpan.Zero;
+                return default;
             }
 
-            if (curTime >= startFullDelayTime && curTime <= endFullDelayTime)
+            if (curOffset >= rampUpDuration && curOffset <= endFullOffset)
             {
-                return delay;
+                return value;
             }
 
-            if (curTime > endFullDelayTime)
+            if (curOffset > endFullOffset)
             {
-                return delay - (curTime - endFullDelayTime) / rampUpDuration * delay;
+                return value - multiply((curOffset - endFullOffset) / rampUpDuration, value);
             }
 
-            if (curTime > beginTime)
-            {
-                return (curTime - beginTime) / rampUpDuration * delay;
-            }
-
-            return TimeSpan.Zero;
+            return multiply(curOffset / rampUpDuration, value);
         }
     }
 }

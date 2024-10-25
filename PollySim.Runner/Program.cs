@@ -4,9 +4,9 @@ namespace PollySim.Runner;
 
 public class Program
 {
-    private static readonly TimeSpan _testDuration = TimeSpan.FromSeconds(60);
+    private static readonly TimeSpan _testDuration = TimeSpan.FromSeconds(120);
     private static readonly TimeSpan _testTick = TimeSpan.FromMilliseconds(100);
-    private static readonly int _rps = 10;
+    private static readonly int _rps = 100;
 
     public static void Main(string[] args)
     {
@@ -18,17 +18,23 @@ public class Program
 
         app.MapDefaultEndpoints();
 
-        app.MapGet("/", () => "Supported endpoints: ['/retry', '/timeout']");
+        app.MapGet("/", () => "Supported endpoints: ['/retry', '/timeout', '/cb']");
         app.MapGet("/retry", (IHttpClientFactory factory) =>
             {
                 var _ = RunTest(factory, Retry.Run);
-                return $"Retry Test Started for next {_testDuration.TotalSeconds} seconds with {_rps} RPS.";
+                return $"Retry test started for next {_testDuration.TotalSeconds} seconds with {_rps} RPS.";
             }
         );
         app.MapGet("/timeout", (IHttpClientFactory factory) =>
             {
                 var _ = RunTest(factory, Timeout.Run);
-                return $"Timeout Test Started for next {_testDuration.TotalSeconds} seconds with {_rps} RPS.";
+                return $"Timeout test started for next {_testDuration.TotalSeconds} seconds with {_rps} RPS.";
+            }
+        );
+        app.MapGet("/cb", (IHttpClientFactory factory) =>
+            {
+                var _ = RunTest(factory, CircuitBreaker.Run);
+                return $"CircuitBreaker test started for next {_testDuration.TotalSeconds} seconds with {_rps} RPS.";
             }
         );
 
@@ -40,6 +46,7 @@ public class Program
         services.AddSingleton<SuccessHandler>();
         Retry.Configure(services);
         Timeout.Configure(services);
+        CircuitBreaker.Configure(services);
     }
 
     private static async Task RunTest(IHttpClientFactory factory, Func<IHttpClientFactory, DateTime, Task> test)
