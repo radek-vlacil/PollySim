@@ -14,7 +14,7 @@ namespace PollySim.Runner
 
             using var client = clientFactory.CreateClient(ClientName);
 
-            await client.GetAsync("http://retry");
+            await client.SendAsync(request);
         }
 
         public static void Configure(IServiceCollection services)
