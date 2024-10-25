@@ -3,7 +3,7 @@ var builder = DistributedApplication.CreateBuilder(args);
 var grafana = builder.AddContainer("grafana", "grafana/grafana")
                      .WithBindMount("../grafana/config", "/etc/grafana", isReadOnly: true)
                      .WithBindMount("../grafana/dashboards", "/var/lib/grafana/dashboards", isReadOnly: true)
-                     .WithHttpEndpoint(targetPort: 3000, name: "http");
+                     .WithHttpEndpoint(port:3001, targetPort: 3000, name: "http");
 
 builder.AddContainer("prometheus", "prom/prometheus")
        .WithBindMount("../prometheus", "/etc/prometheus", isReadOnly: true)

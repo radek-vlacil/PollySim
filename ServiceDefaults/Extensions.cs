@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
+using Polly.Telemetry;
 
 namespace Microsoft.Extensions.Hosting;
 
@@ -52,19 +53,28 @@ public static class Extensions
 
         builder.AddOpenTelemetryExporters();
 
+        /*
+        builder.Services.Configure<TelemetryOptions>(options =>
+        {
+            options.SeverityProvider = args => args.Event.EventName switch
+            {
+                "ExecutionAttempt" => ResilienceEventSeverity.Debug,
+                _ => args.Event.Severity
+            };
+        });
+        */
+
         return builder;
     }
 
     private static IHostApplicationBuilder AddOpenTelemetryExporters(this IHostApplicationBuilder builder)
     {
-        /*
         var useOtlpExporter = !string.IsNullOrWhiteSpace(builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]);
 
         if (useOtlpExporter)
         {
             builder.Services.AddOpenTelemetry().UseOtlpExporter();
         }
-        */
 
         // The following lines enable the Prometheus exporter (requires the OpenTelemetry.Exporter.Prometheus.AspNetCore package)
         builder.Services.AddOpenTelemetry()

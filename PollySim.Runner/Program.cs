@@ -1,8 +1,10 @@
+using PollySim.Runner.Responder;
+
 namespace PollySim.Runner;
 
 public class Program
 {
-    private static readonly TimeSpan _testDuration = TimeSpan.FromSeconds(30);
+    private static readonly TimeSpan _testDuration = TimeSpan.FromSeconds(60);
     private static readonly TimeSpan _testTick = TimeSpan.FromMilliseconds(100);
     private static readonly int _rps = 10;
 
@@ -16,10 +18,16 @@ public class Program
 
         app.MapDefaultEndpoints();
 
-        app.MapGet("/", () => "Supported endpoints: ['/retry']");
+        app.MapGet("/", () => "Supported endpoints: ['/retry', '/timeout']");
         app.MapGet("/retry", (IHttpClientFactory factory) =>
             {
                 var _ = RunTest(factory, Retry.Run);
+                return $"Retry Test Started for next {_testDuration.TotalSeconds} seconds with {_rps} RPS.";
+            }
+        );
+        app.MapGet("/timeout", (IHttpClientFactory factory) =>
+            {
+                var _ = RunTest(factory, Timeout.Run);
                 return $"Retry Test Started for next {_testDuration.TotalSeconds} seconds with {_rps} RPS.";
             }
         );
@@ -29,7 +37,9 @@ public class Program
 
     private static void Configure(IServiceCollection services)
     {
+        services.AddSingleton<SuccessHandler>();
         Retry.Configure(services);
+        Timeout.Configure(services);
     }
 
     private static async Task RunTest(IHttpClientFactory factory, Func<IHttpClientFactory, DateTime, Task> test)
