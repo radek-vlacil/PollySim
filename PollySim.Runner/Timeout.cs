@@ -33,7 +33,7 @@ namespace PollySim.Runner
                 {
                     var timeoutOptions = new HttpTimeoutStrategyOptions
                     {
-                        Timeout = TimeSpan.FromSeconds(2)
+                        Timeout = TimeSpan.FromMilliseconds(1500)
                     };
 
                     var chaosManager = new ChaosManager(TimeSpan.FromSeconds(15), TimeSpan.FromSeconds(30));

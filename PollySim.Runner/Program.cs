@@ -28,7 +28,7 @@ public class Program
         app.MapGet("/timeout", (IHttpClientFactory factory) =>
             {
                 var _ = RunTest(factory, Timeout.Run);
-                return $"Retry Test Started for next {_testDuration.TotalSeconds} seconds with {_rps} RPS.";
+                return $"Timeout Test Started for next {_testDuration.TotalSeconds} seconds with {_rps} RPS.";
             }
         );
 

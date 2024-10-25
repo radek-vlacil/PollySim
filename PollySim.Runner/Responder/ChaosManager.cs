@@ -59,7 +59,7 @@ namespace PollySim.Runner.Responder
 
             if (curTime > endFullDelayTime)
             {
-                return (curTime - endFullDelayTime) / rampUpDuration * delay;
+                return delay - (curTime - endFullDelayTime) / rampUpDuration * delay;
             }
 
             if (curTime > beginTime)

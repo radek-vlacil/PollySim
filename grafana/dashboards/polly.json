@@ -481,7 +481,7 @@
     }
   ],
   "preload": false,
-  "refresh": "",
+  "refresh": "auto",
   "schemaVersion": 40,
   "tags": [],
   "templating": {
@@ -493,7 +493,7 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "Polly Copy",
+  "title": "Polly",
   "uid": "ce1xcv47i0su8a",
   "version": 1,
   "weekStart": ""
