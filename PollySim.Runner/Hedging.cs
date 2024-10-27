@@ -1,0 +1,78 @@
+﻿using Microsoft.Extensions.Http.Resilience;
+using Polly;
+using Polly.Simmy;
+using Polly.Simmy.Latency;
+using PollySim.Runner.Responder;
+
+namespace PollySim.Runner
+{
+    public class Hedging
+    {
+        private static readonly string ClientName = "Hedging";
+
+        public static async Task<HttpResponseMessage> Run(IHttpClientFactory clientFactory, DateTime startTime)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Get, "http://hedging");
+
+            var resilienceContext = ResilienceContextPool.Shared.Get();
+            resilienceContext.SetTestStartTime(startTime);
+            request.SetResilienceContext(resilienceContext);
+
+            using var client = clientFactory.CreateClient(ClientName);
+
+            return await client.SendAsync(request);
+        }
+
+        public static void Configure(IServiceCollection services)
+        {
+            var clientBuilder = services.AddHttpClient(ClientName)
+                .ConfigurePrimaryHttpMessageHandler<SuccessHandler>();
+
+            clientBuilder.AddStandardHedgingHandler(builder =>
+                    {
+                        builder.ConfigureOrderedGroups(static options =>
+                            {
+                                options.Groups = [
+                                    new()
+                                    {
+                                        Endpoints = [ new() { Uri = new("https://hedging.primary") } ]
+                                    },
+                                    new()
+                                    {
+                                        Endpoints = [ new() { Uri = new("https://hedging.secondary") } ]
+                                    }
+                                ];
+                            });
+                    }
+                ).Configure(options => {
+                    options.Hedging.Delay = TimeSpan.FromSeconds(2);
+                    options.Endpoint.CircuitBreaker.SamplingDuration = TimeSpan.FromSeconds(6);
+                    /*
+                    options.Endpoint.CircuitBreaker.ShouldHandle = (args) => 
+                        {
+                            if (args.Outcome.Exception is TaskCanceledException)
+                            {
+                                return ValueTask.FromResult(true);
+                            }
+
+                            return ValueTask.FromResult(HttpClientResiliencePredicates.IsTransient(args.Outcome));
+                        };
+                    */
+                    options.Endpoint.Timeout.Timeout = TimeSpan.FromSeconds(3);
+                }).SelectPipelineByAuthority();
+            clientBuilder.AddResilienceHandler("chaos", configure =>
+                {
+                    var chaosManager = new ChaosManager(TimeSpan.FromSeconds(15), TimeSpan.FromSeconds(30), 1.0, TimeSpan.FromSeconds(10), "hedging.primary");
+                    var chaosStrategy = new ChaosLatencyStrategyOptions()
+                    {
+                        EnabledGenerator = (args) => chaosManager.IsChaosEnabled(args.Context),
+                        InjectionRateGenerator = (args) => chaosManager.GetInjectionRate(args.Context),
+                        LatencyGenerator = (args) => chaosManager.GetLinearDelay(TimeSpan.FromSeconds(4), args.Context)
+                    };
+
+                    configure.AddChaosLatency(chaosStrategy);
+                }
+            );
+        }
+    }
+}

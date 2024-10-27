@@ -18,7 +18,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 3,
+  "id": 2,
   "links": [],
   "panels": [
     {
@@ -109,7 +109,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "builder",
-          "expr": "sum by(error_type, exception_type) (rate(resilience_polly_pipeline_duration_milliseconds_count[$__rate_interval]))",
+          "expr": "sum by(error_type) (rate(resilience_polly_pipeline_duration_milliseconds_count{pipeline_name=\"Hedging-standard-hedging\"}[$__rate_interval]))",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "__auto",
@@ -118,7 +118,7 @@
           "useBackend": false
         }
       ],
-      "title": "Request Count",
+      "title": "Overall Request Count",
       "type": "timeseries"
     },
     {
@@ -158,7 +158,7 @@
             "spanNulls": false,
             "stacking": {
               "group": "A",
-              "mode": "none"
+              "mode": "normal"
             },
             "thresholdsStyle": {
               "mode": "off"
@@ -209,7 +209,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "builder",
-          "expr": "sum by(pipeline_name) (rate(resilience_polly_pipeline_duration_milliseconds_sum[$__rate_interval]))",
+          "expr": "sum by(pipeline_name) (rate(resilience_polly_pipeline_duration_milliseconds_sum{pipeline_name=\"Hedging-standard-hedging\"}[$__rate_interval]))",
           "fullMetaSearch": false,
           "hide": true,
           "includeNullMetadata": true,
@@ -225,7 +225,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "builder",
-          "expr": "sum by(pipeline_name) (rate(resilience_polly_pipeline_duration_milliseconds_count[$__rate_interval]))",
+          "expr": "sum by(pipeline_name) (rate(resilience_polly_pipeline_duration_milliseconds_count{pipeline_name=\"Hedging-standard-hedging\"}[$__rate_interval]))",
           "fullMetaSearch": false,
           "hide": true,
           "includeNullMetadata": true,
@@ -247,7 +247,7 @@
           "type": "math"
         }
       ],
-      "title": "Request Latency",
+      "title": "Overall Latency",
       "type": "timeseries"
     },
     {
@@ -338,7 +338,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "builder",
-          "expr": "sum by(error_type) (rate(resilience_polly_strategy_attempt_duration_milliseconds_count[$__rate_interval]))",
+          "expr": "sum by(attempt_number, error_type, exception_type) (rate(resilience_polly_strategy_attempt_duration_milliseconds_count{pipeline_name=\"Hedging-standard-hedging\"}[$__rate_interval]))",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "__auto",
@@ -347,7 +347,7 @@
           "useBackend": false
         }
       ],
-      "title": "Attempts Count",
+      "title": "Overall Attempts Count",
       "type": "timeseries"
     },
     {
@@ -476,7 +476,7 @@
           "type": "math"
         }
       ],
-      "title": "Attempts Latency",
+      "title": "Overall Attempts Latency",
       "type": "timeseries"
     },
     {
@@ -583,7 +583,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "builder",
-          "expr": "sum by(event_name) (rate(resilience_polly_strategy_events[$__rate_interval]))",
+          "expr": "sum by(event_name) (rate(resilience_polly_strategy_events{pipeline_name=\"Hedging-standard-hedging\"}[$__rate_interval]))",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "__auto",
@@ -592,7 +592,123 @@
           "useBackend": false
         }
       ],
-      "title": "Events",
+      "title": "Overall Events",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 50,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Chaos.OnOutcome"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "dark-red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 10,
+        "x": 10,
+        "y": 16
+      },
+      "id": 6,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "disableTextWrap": false,
+          "editorMode": "builder",
+          "expr": "sum by(event_name) (rate(resilience_polly_strategy_events{pipeline_name=\"Hedging-standard-hedging-endpoint\"}[$__rate_interval]))",
+          "fullMetaSearch": false,
+          "includeNullMetadata": true,
+          "legendFormat": "__auto",
+          "range": true,
+          "refId": "A",
+          "useBackend": false
+        }
+      ],
+      "title": "Endpoint Events",
       "type": "timeseries"
     }
   ],
@@ -609,8 +725,8 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "Polly",
-  "uid": "ce1xcv47i0su8a",
+  "title": "Hedging",
+  "uid": "ee25qg2cxrncwf",
   "version": 1,
   "weekStart": ""
 }

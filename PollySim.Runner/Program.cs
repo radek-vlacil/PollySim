@@ -6,7 +6,7 @@ public class Program
 {
     private static readonly TimeSpan _testDuration = TimeSpan.FromSeconds(120);
     private static readonly TimeSpan _testTick = TimeSpan.FromMilliseconds(100);
-    private static readonly int _rps = 100;
+    private static readonly int _rps = 50;
 
     public static void Main(string[] args)
     {
@@ -18,7 +18,7 @@ public class Program
 
         app.MapDefaultEndpoints();
 
-        app.MapGet("/", () => "Supported endpoints: ['/retry', '/timeout', '/cb']");
+        app.MapGet("/", () => "Supported endpoints: ['/retry', '/timeout', '/cb', '/hedging']");
         app.MapGet("/retry", (IHttpClientFactory factory) =>
             {
                 var _ = RunTest(factory, Retry.Run);
@@ -37,6 +37,12 @@ public class Program
                 return $"CircuitBreaker test started for next {_testDuration.TotalSeconds} seconds with {_rps} RPS.";
             }
         );
+        app.MapGet("/hedging", (IHttpClientFactory factory) =>
+            {
+                var _ = RunTest(factory, Hedging.Run);
+                return $"Hedging without circuit breaker test started for next {_testDuration.TotalSeconds} seconds with {_rps} RPS.";
+            }
+        );
 
         app.Run();
     }
@@ -47,9 +53,10 @@ public class Program
         Retry.Configure(services);
         Timeout.Configure(services);
         CircuitBreaker.Configure(services);
+        Hedging.Configure(services);
     }
 
-    private static async Task RunTest(IHttpClientFactory factory, Func<IHttpClientFactory, DateTime, Task> test)
+    private static async Task RunTest(IHttpClientFactory factory, Func<IHttpClientFactory, DateTime, Task<HttpResponseMessage>> action)
     {
         var periodicTimer = new PeriodicTimer(_testTick);
         var tickCount = (int) (_testDuration / _testTick);
@@ -62,7 +69,7 @@ public class Program
         {
             foreach (var j in Enumerable.Range(0, requestPerTick))
             {
-                var _ = test(factory, startTime);
+                var _ = action(factory, startTime);
             }
             ++i;
         }

@@ -9,6 +9,7 @@ namespace PollySim.Runner.Responder
         public TimeSpan ChaosDuration { get; }
         public double InjectionRate { get; }
         public TimeSpan RumpUpDuration { get; }
+        public string? Host { get; }
 
         public static readonly ChaosManager Default = new(TimeSpan.FromSeconds(15), TimeSpan.FromSeconds(15));
 
@@ -18,19 +19,17 @@ namespace PollySim.Runner.Responder
         }
         
         public ChaosManager(TimeSpan startOffset, TimeSpan chaosDuration, double injectionRate)
+            : this(startOffset, chaosDuration, injectionRate, TimeSpan.Zero)
         {
-            StartOffset = startOffset;
-            ChaosDuration = chaosDuration;
-            InjectionRate = injectionRate;
-            RumpUpDuration = TimeSpan.Zero;
         }
 
-        public ChaosManager(TimeSpan startOffset, TimeSpan chaosDuration, double injectionRate, TimeSpan rumpUpDuration)
+        public ChaosManager(TimeSpan startOffset, TimeSpan chaosDuration, double injectionRate, TimeSpan rumpUpDuration, string? host = null)
         {
             StartOffset = startOffset;
             ChaosDuration = chaosDuration;
             InjectionRate = injectionRate;
             RumpUpDuration = rumpUpDuration;
+            Host = host;
         }
 
         public ValueTask<bool> IsChaosEnabled(ResilienceContext context)
@@ -39,6 +38,12 @@ namespace PollySim.Runner.Responder
             var curOffset = DateTime.Now - testStartTime;
             var beginOffset = StartOffset;
             var endOffset = beginOffset + RumpUpDuration + ChaosDuration + RumpUpDuration;
+            var request = context.GetRequestMessage();
+
+            if (Host != null && request != null && request.RequestUri?.Host != Host)
+            {
+                return ValueTask.FromResult(false);
+            }
 
             if (curOffset > beginOffset && curOffset < endOffset)
             {
@@ -55,6 +60,11 @@ namespace PollySim.Runner.Responder
         public ValueTask<double> GetLinearProgressionInjectionRate(ResilienceContext context)
         {
             return ValueTask.FromResult(LinearProgressionGenerator(InjectionRate, context.GetTestStartTime() + StartOffset, ChaosDuration, RumpUpDuration));
+        }
+
+        public ValueTask<TimeSpan> GetLinearDelay(TimeSpan maxDelay, ResilienceContext context)
+        {
+            return ValueTask.FromResult(LinearDelayGenerator(maxDelay, context.GetTestStartTime() + StartOffset, ChaosDuration, RumpUpDuration));
         }
 
         public static double LinearProgressionGenerator(double value, DateTime beginTime, TimeSpan duration, TimeSpan rampUpDuration)

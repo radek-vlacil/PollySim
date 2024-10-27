@@ -11,7 +11,7 @@ namespace PollySim.Runner
     {
         private static readonly string ClientName = "Retry";
 
-        public static async Task Run(IHttpClientFactory clientFactory, DateTime startTime)
+        public static async Task<HttpResponseMessage> Run(IHttpClientFactory clientFactory, DateTime startTime)
         {
             var request = new HttpRequestMessage(HttpMethod.Get, "http://retry");
 
@@ -21,7 +21,7 @@ namespace PollySim.Runner
 
             using var client = clientFactory.CreateClient(ClientName);
 
-            await client.SendAsync(request);
+            return await client.SendAsync(request);
         }
 
         public static void Configure(IServiceCollection services)

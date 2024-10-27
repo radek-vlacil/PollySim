@@ -1,9 +1,7 @@
-﻿using Polly.Retry;
-using Polly;
+﻿using Polly;
 using PollySim.Runner.Responder;
 using Microsoft.Extensions.Http.Resilience;
 using Polly.Simmy;
-using System.Net;
 using Polly.Simmy.Latency;
 
 namespace PollySim.Runner
@@ -12,7 +10,7 @@ namespace PollySim.Runner
     {
         private static readonly string ClientName = "Timeout";
 
-        public static async Task Run(IHttpClientFactory clientFactory, DateTime startTime)
+        public static async Task<HttpResponseMessage> Run(IHttpClientFactory clientFactory, DateTime startTime)
         {
             var request = new HttpRequestMessage(HttpMethod.Get, "http://timeout");
 
@@ -22,7 +20,7 @@ namespace PollySim.Runner
 
             using var client = clientFactory.CreateClient(ClientName);
 
-            await client.SendAsync(request);
+            return await client.SendAsync(request);
         }
 
         public static void Configure(IServiceCollection services)

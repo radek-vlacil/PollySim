@@ -43,7 +43,8 @@ public static class Extensions
                 metrics.AddAspNetCoreInstrumentation()
                        .AddHttpClientInstrumentation()
                        .AddRuntimeInstrumentation()
-                       .AddMeter("Polly");
+                       .AddMeter("Polly")
+                       .AddMeter("PollySim");
             })
             .WithTracing(tracing =>
             {
@@ -53,7 +54,6 @@ public static class Extensions
 
         builder.AddOpenTelemetryExporters();
 
-        /*
         builder.Services.Configure<TelemetryOptions>(options =>
         {
             options.SeverityProvider = args => args.Event.EventName switch
@@ -62,7 +62,6 @@ public static class Extensions
                 _ => args.Event.Severity
             };
         });
-        */
 
         return builder;
     }
