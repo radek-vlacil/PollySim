@@ -35,7 +35,7 @@ namespace PollySim.Runner
                         FailureRatio = 0.5,
                         MinimumThroughput = 60,
                         SamplingDuration = TimeSpan.FromSeconds(2),
-                        BreakDuration = TimeSpan.FromSeconds(2)
+                        BreakDuration = TimeSpan.FromSeconds(5)
                     };
 
                     var chaosManager = new ChaosManager(TimeSpan.FromSeconds(15), TimeSpan.FromSeconds(20), 0.6, TimeSpan.FromSeconds(15));

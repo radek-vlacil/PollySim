@@ -47,14 +47,17 @@ namespace PollySim.Runner
                 ).Configure(options => {
                     options.Hedging.Delay = TimeSpan.FromSeconds(2);
                     options.Endpoint.CircuitBreaker.SamplingDuration = TimeSpan.FromSeconds(6);
+                    //options.Hedging.OnHedging = // you can change the request here
                     /*
                     options.Endpoint.CircuitBreaker.ShouldHandle = (args) => 
                         {
                             if (args.Outcome.Exception is TaskCanceledException)
                             {
+                                // adding this will force circuit breaker to handle the cancelations as failures
                                 return ValueTask.FromResult(true);
                             }
 
+                            // it is recommended to put is transient as the last check
                             return ValueTask.FromResult(HttpClientResiliencePredicates.IsTransient(args.Outcome));
                         };
                     */
