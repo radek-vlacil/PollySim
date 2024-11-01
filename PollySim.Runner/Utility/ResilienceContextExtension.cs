@@ -1,6 +1,6 @@
 ﻿using Polly;
 
-namespace PollySim.Runner.Responder
+namespace PollySim.Runner.Utility
 {
     public static class ResilienceContextExtension
     {

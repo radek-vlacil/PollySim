@@ -1,6 +1,6 @@
 ﻿using System.Net;
 
-namespace PollySim.Runner.Responder
+namespace PollySim.Runner.Utility
 {
     public class SuccessHandler : HttpMessageHandler
     {

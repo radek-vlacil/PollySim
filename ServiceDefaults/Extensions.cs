@@ -43,8 +43,7 @@ public static class Extensions
                 metrics.AddAspNetCoreInstrumentation()
                        .AddHttpClientInstrumentation()
                        .AddRuntimeInstrumentation()
-                       .AddMeter("Polly")
-                       .AddMeter("PollySim");
+                       .AddMeter("Polly");
             })
             .WithTracing(tracing =>
             {

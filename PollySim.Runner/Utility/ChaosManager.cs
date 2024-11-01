@@ -1,7 +1,7 @@
 ﻿using Polly;
 using System.Numerics;
 
-namespace PollySim.Runner.Responder
+namespace PollySim.Runner.Utility
 {
     public class ChaosManager
     {
@@ -17,7 +17,7 @@ namespace PollySim.Runner.Responder
             : this(startOffset, chaosDuration, 1.0, TimeSpan.Zero)
         {
         }
-        
+
         public ChaosManager(TimeSpan startOffset, TimeSpan chaosDuration, double injectionRate)
             : this(startOffset, chaosDuration, injectionRate, TimeSpan.Zero)
         {

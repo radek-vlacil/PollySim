@@ -2,7 +2,7 @@
 using Polly.Simmy.Outcomes;
 using System.Net;
 
-namespace PollySim.Runner.Responder
+namespace PollySim.Runner.Utility
 {
     public static class ChaosUtility
     {

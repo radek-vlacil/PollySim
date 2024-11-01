@@ -1,8 +1,8 @@
 ﻿using Polly;
-using PollySim.Runner.Responder;
 using Microsoft.Extensions.Http.Resilience;
 using Polly.Simmy;
 using Polly.Simmy.Latency;
+using PollySim.Runner.Utility;
 
 namespace PollySim.Runner
 {
@@ -12,15 +12,7 @@ namespace PollySim.Runner
 
         public static async Task<HttpResponseMessage> Run(IHttpClientFactory clientFactory, DateTime startTime)
         {
-            var request = new HttpRequestMessage(HttpMethod.Get, "http://timeout");
-
-            var resilienceContext = ResilienceContextPool.Shared.Get();
-            resilienceContext.SetTestStartTime(startTime);
-            request.SetResilienceContext(resilienceContext);
-
-            using var client = clientFactory.CreateClient(ClientName);
-
-            return await client.SendAsync(request);
+            return await RequestSender.Send(clientFactory, ClientName, "http://timeout", startTime);
         }
 
         public static void Configure(IServiceCollection services)
@@ -34,12 +26,12 @@ namespace PollySim.Runner
                         Timeout = TimeSpan.FromMilliseconds(1500)
                     };
 
-                    var chaosManager = new ChaosManager(TimeSpan.FromSeconds(15), TimeSpan.FromSeconds(30));
+                    var chaosManager = new ChaosManager(TimeSpan.FromSeconds(15), TimeSpan.FromSeconds(30), 1.0, TimeSpan.FromSeconds(10));
                     var chaosStrategy = new ChaosLatencyStrategyOptions()
                     {
                         EnabledGenerator = (args) => chaosManager.IsChaosEnabled(args.Context),
                         InjectionRateGenerator = (args) => chaosManager.GetInjectionRate(args.Context),
-                        LatencyGenerator = (args) => ValueTask.FromResult(ChaosManager.LinearDelayGenerator(TimeSpan.FromSeconds(2), args.Context.GetTestStartTime() + chaosManager.StartOffset, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10)))
+                        LatencyGenerator = (args) => chaosManager.GetLinearDelay(TimeSpan.FromSeconds(2), args.Context)
                     };
 
                     configure.AddTimeout(timeoutOptions)

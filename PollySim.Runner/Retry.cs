@@ -2,7 +2,7 @@
 using Polly;
 using Polly.Simmy;
 using Polly.Simmy.Outcomes;
-using PollySim.Runner.Responder;
+using PollySim.Runner.Utility;
 using System.Net;
 
 namespace PollySim.Runner
@@ -13,15 +13,7 @@ namespace PollySim.Runner
 
         public static async Task<HttpResponseMessage> Run(IHttpClientFactory clientFactory, DateTime startTime)
         {
-            var request = new HttpRequestMessage(HttpMethod.Get, "http://retry");
-
-            var resilienceContext = ResilienceContextPool.Shared.Get();
-            resilienceContext.SetTestStartTime(startTime);
-            request.SetResilienceContext(resilienceContext);
-
-            using var client = clientFactory.CreateClient(ClientName);
-
-            return await client.SendAsync(request);
+            return await RequestSender.Send(clientFactory, ClientName, "http://retry", startTime);
         }
 
         public static void Configure(IServiceCollection services)
