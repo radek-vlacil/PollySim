@@ -109,7 +109,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "builder",
-          "expr": "sum by(error_type, exception_type) (rate(resilience_polly_pipeline_duration_milliseconds_count[$__rate_interval]))",
+          "expr": "sum by(error_type, exception_type) (rate(resilience_polly_pipeline_duration_milliseconds_count[2s]))",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "__auto",
@@ -338,7 +338,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "builder",
-          "expr": "sum by(error_type) (rate(resilience_polly_strategy_attempt_duration_milliseconds_count[$__rate_interval]))",
+          "expr": "sum by(error_type, attempt_number) (rate(resilience_polly_strategy_attempt_duration_milliseconds_count[$__rate_interval]))",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "__auto",
@@ -472,7 +472,7 @@
           },
           "expression": "$A / $B",
           "hide": false,
-          "refId": "C",
+          "refId": "Attempt",
           "type": "math"
         }
       ],
@@ -604,7 +604,7 @@
     "list": []
   },
   "time": {
-    "from": "now-5m",
+    "from": "now-2m",
     "to": "now"
   },
   "timepicker": {},
